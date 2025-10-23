@@ -135,10 +135,10 @@ node.disk_image = UBUNTU_IMG
 #deploy_cmd = "/local/repository/bin/deploy-oai-cn5g.sh {} {}".format(params.repo_url, params.repo_branch)
 #deploy_cmd = "/local/repository/deploy-oai-cn5g.sh /local/repository/oai-cn5g-fed"
 #cn_node.addService(rspec.Execute(shell="bash", command=deploy_cmd))
-#node.addService(rspec.Execute(shell="bash", command="bash /local/repository/deploy-oai-cn5g.sh /local/repository/oai-cn5g-fed"))
-node.addService(rspec.Execute(shell="bash",command="bash /local/repository/deploy-oai.sh cn"))
-node.addService(rspec.Execute(shell="bash",command="bash /local/repository/deploy-oai.sh nodeb"))
-node.addService(rspec.Execute(shell="bash",command="bash /local/repository/deploy-oai.sh ue"))
+node.addService(rspec.Execute(shell="bash", command="bash /local/repository/deploy-oai-cn5g.sh /local/repository/oai-cn5g-fed"))
+#node.addService(rspec.Execute(shell="bash",command="bash /local/repository/deploy-oai.sh cn"))
+#node.addService(rspec.Execute(shell="bash",command="bash /local/repository/deploy-oai.sh nodeb"))
+#node.addService(rspec.Execute(shell="bash",command="bash /local/repository/deploy-oai.sh ue"))
 
 
 # for frange in params.freq_ranges:
@@ -151,8 +151,3 @@ tour.Instructions(IG.Tour.MARKDOWN, tourInstructions)
 request.addTour(tour)
 
 pc.printRequestRSpec(request)
-
-
-
-
-
