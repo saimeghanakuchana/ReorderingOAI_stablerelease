@@ -21,8 +21,6 @@ else
 fi
 
 
-
-
 # Define working directory for CN5G
 # CN_DIR="/var/tmp/oai-cn5g"
 # CN_DIR="/opt/oai-cn5g"
@@ -96,7 +94,7 @@ function setup_cn_node {
     echo setting up cn node... done.
 }
 
-function setup_ran_node {
+function install_ran_packages {
     # using `build-oai -I --install-optional-packages` results in interactive
     # prompts, so...
     echo installing supporting packages...
@@ -113,19 +111,20 @@ function setup_ran_node {
         zlib1g-dev
     sudo uhd_images_downloader
     echo installing supporting packages... done.
+}
 
+function setup_ran_node {
+    # using `build-oai -I --install-optional-packages` results in interactive
+    # prompts, so...
     echo cloning and building oai ran...
     
     #cd $SRCDIR
     #git clone $OAI_RAN_REPO openairinterface5g
     #cd openairinterface5g
     #git checkout $COMMIT_HASH
-
-                      # Copy all files from read-only repo to working folder
+    # Copy all files from read-only repo to working folder
     cd "$RAN_WORKING_DIR"  
-    
     cd cmake_targets
-
     ./build_oai -I
     ./build_oai -w USRP $BUILD_ARGS --ninja -C
     echo cloning and building oai ran... done.
@@ -133,8 +132,8 @@ function setup_ran_node {
 
 function configure_nodeb {
     echo configuring nodeb...
-    mkdir -p $SRCDIR/etc/oai
-    cp -r $ETCDIR/oai/ran/* $SRCDIR/etc/oai/
+    mkdir -p $SRCDIR/etc
+    cp -r $ETCDIR/* $SRCDIR/etc/
     LANIF=`ip r | awk '/192\.168\.1\.0/{print $3}'`
     if [ ! -z $LANIF ]; then
       LANIP=`ip r | awk '/192\.168\.1\.0/{print $NF}'`
@@ -171,12 +170,18 @@ if [ $NODE_ROLE == "cn" ]; then
 
 elif [ $NODE_ROLE == "nodeb" ]; then
     BUILD_ARGS="--gNB"
+    install_ran_packages
     setup_ran_node
-    #configure_nodeb
+    configure_nodeb
 elif [ $NODE_ROLE == "ue" ]; then
     BUILD_ARGS="--nrUE"
     setup_ran_node
     #configure_ue
+elif [ $NODE_ROLE == "ran" ]; then
+    BUILD_ARGS="--gNB --nrUE"
+    install_ran_packages
+    setup_ran_node
+    configure_nodeb
 fi
 
 touch $SRCDIR/oai-setup-complete
