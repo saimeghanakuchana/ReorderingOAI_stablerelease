@@ -35,15 +35,26 @@ sudo docker compose -f docker-compose-basic-nrf.yaml up -d
  
 It will take several seconds for the services to start up. Since we started the services in detached mode, you can check the status of the services with:
 
-```
-sudo docker compose -f docker-compose-basic-nrf.yaml ps
-```
 
 In another session, start following the logs for the AMF. This way you can see when the UE attaches to the network.
 
 ```
-cd /var/tmp/oai-cn5g
-sudo docker compose logs -f oai-amf
+cd /mydata/oai-cn5g
+sudo docker logs -f oai-amf
+```
+
+To build the RAN, in another session, run the following commands 
+
+```
+bash /local/repository/deploy-oai.sh ran   
+```
+This will take several seconds to build. It will successfully install all the dependencies and build gNB and UE.
+
+To start a gNB now, run: 
+
+```
+cd /mydata/openairinterface5g/cmake_targets
+sudo RFSIMULATOR=server ./ran_build/build/nr-softmodem --rfsim -O /local/repository/etc/gnb.conf 
 ```
 
 If you'd like to monitor traffic between the various network functions and the gNodeB, start tshark in yet another session:
