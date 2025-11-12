@@ -3,7 +3,7 @@
 This file contains the set of instructions for packet spraying to test the throughput and latency using TCP RACK and MPTCP. The overall end-to-end setup is shown the following figure. 
 ---
 
-![End to End setup](images/6G_summit.jpg)
+![End to End setup](images/6G_summit.JPG)
 
 ---
 
