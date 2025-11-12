@@ -112,7 +112,7 @@ sudo docker inspect oai-amf | grep IPAddress
 NETWORK_INTERFACES->GNB_IPV4_ADDRESS_FOR_NG_AMF 
 ```
 
-- ## TODO: In future, intead of manually changing the address, try to resolve by fixing the AMF ipaddress (check: /mydata/oai-cn5g/docker-compose/conf$ nano basic_nrf_config.yaml) 
+- TODO: In future, intead of manually changing the address, try to resolve by fixing the AMF ipaddress (check: /mydata/oai-cn5g/docker-compose/conf$ nano basic_nrf_config.yaml) 
 
 -Also, change the subnet mask in the same file to 26 
 
