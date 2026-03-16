@@ -23,6 +23,7 @@
 #define _NR_PDCP_SDU_H_
 
 #include <stdint.h>
+#include <stdbool.h>
 
 #include "nr_pdcp_integrity_data.h"
 
@@ -31,6 +32,7 @@ typedef struct nr_pdcp_sdu_t {
   char                     *buffer;
   int                      size;
   nr_pdcp_integrity_data_t msg_integrity;
+  bool delivered; /*flag is true if sdu is already delivered to higher layers */
   struct nr_pdcp_sdu_t     *next;
 } nr_pdcp_sdu_t;
 

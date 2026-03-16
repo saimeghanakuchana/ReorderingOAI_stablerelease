@@ -37,6 +37,7 @@ nr_pdcp_sdu_t *nr_pdcp_new_sdu(uint32_t count, char *buffer, int size,
   memcpy(ret->buffer, buffer, size);
   ret->size = size;
   memcpy(&ret->msg_integrity, msg_integrity, sizeof(*msg_integrity));
+  ret->delivered = false;
   return ret;
 }
 

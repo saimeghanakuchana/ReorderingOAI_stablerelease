@@ -147,6 +147,7 @@ typedef struct nr_pdcp_entity_t {
 
   /* timers (stores the ms of activation, 0 means not active) */
   uint64_t t_reordering_start;
+  bool out_of_order_delivery;
 
   /* security */
   int has_ciphering;

@@ -176,20 +176,42 @@ static void nr_pdcp_entity_recv_pdu(nr_pdcp_entity_t *entity,
   }
 
   /* TODO(?): out of order delivery */
+  if (entity->out_of_order_delivery){
+    /* Spec: still stored in reception buffer (rx_list) above.
+     * Now deliver immediately (may be out-of-order).
+     * NOTE: deliver_sdu is assumed to perform header decompression if configured.
+     */
+
+    entity-> deliver_sdu(entity->deliver_sdu_data, entity,
+                          sdu->buffer, sdu->size,
+                          &sdu->msg_integrity);
+    sdu-> delivered = true;
+
+    entity->stats.txsdu_pkts++;
+    entity->stats.txsdu_bytes += sdu->size;
+  }
+
+
 
   if (rcvd_count == entity->rx_deliv) {
     /* deliver all SDUs starting from rx_deliv up to discontinuity or end of list */
     uint32_t count = entity->rx_deliv;
     while (entity->rx_list != NULL && count == entity->rx_list->count) {
       nr_pdcp_sdu_t *cur = entity->rx_list;
-      entity->deliver_sdu(entity->deliver_sdu_data, entity,
+
+      if(!cur->delivered){
+        /* Prevents double-delivery in the in-order delivery loop */ 
+
+        entity->deliver_sdu(entity->deliver_sdu_data, entity,
                           cur->buffer, cur->size,
                           &cur->msg_integrity);
+        entity->stats.txsdu_pkts++;
+        entity->stats.txsdu_bytes += cur->size;
+        
+        cur-> delivered = true;
+      }
       entity->rx_list = cur->next;
       entity->rx_size -= cur->size;
-      entity->stats.txsdu_pkts++;
-      entity->stats.txsdu_bytes += cur->size;
-
       nr_pdcp_free_sdu(cur);
       count++;
     }
@@ -672,6 +694,7 @@ nr_pdcp_entity_t *new_nr_pdcp_entity(
   ret->window_size   = 1 << (sn_size - 1);
 
   ret->is_gnb = is_gnb;
+  ret -> out_of_order_delivery = true;
 
   nr_pdcp_entity_set_security(ret, security_parameters);
 
