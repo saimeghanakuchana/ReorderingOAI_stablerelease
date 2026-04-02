@@ -93,8 +93,8 @@ void set_default_drb_pdcp_config(struct pdcp_config_s *pdcp_config,
   pdcp_config->pdcp_SN_SizeUL = encode_sn_size_ul(default_pdcp_config->drb.sn_size);
   pdcp_config->t_Reordering = encode_t_reordering(default_pdcp_config->drb.t_reordering);
   pdcp_config->outOfOrderDelivery = default_pdcp_config->drb.out_of_order_delivery;
-  LOG_I(RRC, "meghs: default_pdcp_config->drb.out_of_order_delivery = %d\n", default_pdcp_config->drb.out_of_order_delivery);
-  LOG_I(RRC, "meghs: RRC helper pdcp_config->outOfOrderDelivery = %d\n", pdcp_config->outOfOrderDelivery);
+  LOG_I(RRC, "default_pdcp_config->drb.out_of_order_delivery = %d\n", default_pdcp_config->drb.out_of_order_delivery);
+  LOG_I(RRC, "RRC helper pdcp_config->outOfOrderDelivery = %d\n", pdcp_config->outOfOrderDelivery);
 
 
 
