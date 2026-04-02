@@ -298,7 +298,19 @@ NR_RadioBearerConfig_t *get_default_rbconfig(int eps_bearer_id,
   drb->headerCompression.choice.notUsed = 0;
   drb->integrityProtection = NULL;
   drb->statusReportRequired = NULL;
-  drb->outOfOrderDelivery = NULL;
+  //drb->outOfOrderDelivery = NULL;
+
+  LOG_I(RRC, "meghs: asn1_msg.c: UE-facing DRB build: out_of_order_delivery cfg=%d\n", pdcp_config->drb.out_of_order_delivery);
+  LOG_I(RRC, "meghs: asn1_msg.c: UE-facing DRB build: setting outOfOrderDelivery\n");
+
+
+
+  if (pdcp_config->drb.out_of_order_delivery) {
+    asn1cCallocOne(drb->outOfOrderDelivery, NR_PDCP_Config__drb__outOfOrderDelivery_true);
+  } 
+  else {
+    drb->outOfOrderDelivery = NULL;
+  }
 
   drb_ToAddMod->pdcp_Config->moreThanOneRLC = NULL;
   asn1cCallocOne(drb_ToAddMod->pdcp_Config->t_Reordering, encode_t_reordering(pdcp_config->drb.t_reordering));

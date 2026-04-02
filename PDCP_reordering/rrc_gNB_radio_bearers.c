@@ -92,6 +92,12 @@ void set_default_drb_pdcp_config(struct pdcp_config_s *pdcp_config,
   pdcp_config->pdcp_SN_SizeDL = encode_sn_size_dl(default_pdcp_config->drb.sn_size);
   pdcp_config->pdcp_SN_SizeUL = encode_sn_size_ul(default_pdcp_config->drb.sn_size);
   pdcp_config->t_Reordering = encode_t_reordering(default_pdcp_config->drb.t_reordering);
+  pdcp_config->outOfOrderDelivery = default_pdcp_config->drb.out_of_order_delivery;
+  LOG_I(RRC, "meghs: default_pdcp_config->drb.out_of_order_delivery = %d\n", default_pdcp_config->drb.out_of_order_delivery);
+  LOG_I(RRC, "meghs: RRC helper pdcp_config->outOfOrderDelivery = %d\n", pdcp_config->outOfOrderDelivery);
+
+
+
   pdcp_config->headerCompression.present = NR_PDCP_Config__drb__headerCompression_PR_notUsed;
   pdcp_config->headerCompression.NotUsed = 0;
   pdcp_config->integrityProtection = do_drb_integrity ? NR_PDCP_Config__drb__integrityProtection_enabled : 1;
@@ -105,6 +111,7 @@ void set_bearer_context_pdcp_config(bearer_context_pdcp_config_t *pdcp_config, d
   pdcp_config->pDCP_SN_Size_DL = rrc_drb->pdcp_config.pdcp_SN_SizeDL;
   pdcp_config->discardTimer = rrc_drb->pdcp_config.discardTimer;
   pdcp_config->reorderingTimer = rrc_drb->pdcp_config.t_Reordering;
+  pdcp_config->outOfOrderDelivery = rrc_drb->pdcp_config.outOfOrderDelivery;
   pdcp_config->rLC_Mode = um_on_default_drb ? E1AP_RLC_Mode_rlc_um_bidirectional : E1AP_RLC_Mode_rlc_am;
 }
 
@@ -185,6 +192,14 @@ NR_DRB_ToAddMod_t *generateDRB_ASN1(const drb_t *drb_asn1)
   asn1cCallocOne(drb->pdcp_SN_SizeUL, drb_asn1->pdcp_config.pdcp_SN_SizeUL);
   asn1cCallocOne(drb->pdcp_SN_SizeDL, drb_asn1->pdcp_config.pdcp_SN_SizeDL);
   asn1cCallocOne(pdcpConfig->t_Reordering, drb_asn1->pdcp_config.t_Reordering);
+
+  if (drb_asn1->pdcp_config.outOfOrderDelivery) {
+    asn1cCallocOne(drb->outOfOrderDelivery, NR_PDCP_Config__drb__outOfOrderDelivery_true);
+  } 
+  else {
+    drb->outOfOrderDelivery = NULL;
+  }
+
 
   drb->headerCompression.present = drb_asn1->pdcp_config.headerCompression.present;
   drb->headerCompression.choice.notUsed = drb_asn1->pdcp_config.headerCompression.NotUsed;

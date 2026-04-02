@@ -32,7 +32,7 @@ typedef struct nr_pdcp_sdu_t {
   char                     *buffer;
   int                      size;
   nr_pdcp_integrity_data_t msg_integrity;
-  bool delivered; /*flag is true if sdu is already delivered to higher layers */
+  bool delivered;
   struct nr_pdcp_sdu_t     *next;
 } nr_pdcp_sdu_t;
 

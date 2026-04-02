@@ -281,6 +281,7 @@ typedef struct bearer_context_pdcp_config_s {
   long reorderingTimer;
   long discardTimer;
   bool pDCP_Reestablishment;
+  bool outOfOrderDelivery;
 } bearer_context_pdcp_config_t;
 
 typedef struct drb_to_setup_s {

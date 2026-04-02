@@ -583,6 +583,7 @@ void add_srb(int is_gnb,
                                   SHORT_SN_SIZE,
                                   t_Reordering,
                                   -1,
+                                  0,
                                   security_parameters);
     nr_pdcp_ue_add_srb_pdcp_entity(ue, srb_id, pdcp_srb);
 
@@ -618,6 +619,12 @@ void add_drb(int is_gnb,
   if (s->pdcp_Config->t_Reordering != NULL) {
     t_reordering = decode_t_reordering(*s->pdcp_Config->t_Reordering);
   }
+
+  int out_of_order_delivery = 0;
+  if (drb->outOfOrderDelivery != NULL) {
+    out_of_order_delivery = 1;
+  }
+  LOG_I(PDCP, "add_drb: drb->outOfOrderDelivery ptr = %p\n",(void *)drb->outOfOrderDelivery);
 
   if (drb->integrityProtection != NULL)
     has_integrity = 1;
@@ -676,7 +683,7 @@ void add_drb(int is_gnb,
                                   is_gnb ?
                                     deliver_pdu_drb_gnb : deliver_pdu_drb_ue,
                                   ue,
-                                  sn_size_dl, t_reordering, discard_timer,
+                                  sn_size_dl, t_reordering, discard_timer, out_of_order_delivery,
                                   &actual_security_parameters);
     nr_pdcp_ue_add_drb_pdcp_entity(ue, drb_id, pdcp_drb);
 
@@ -893,6 +900,10 @@ void nr_pdcp_reconfigure_drb(ue_id_t ue_id, int drb_id, NR_PDCP_Config_t *pdcp_c
       drb->t_reordering = -1;
     struct NR_PDCP_Config__drb *drb_config = pdcp_config->drb;
     if (drb_config) {
+      if (drb_config->outOfOrderDelivery != NULL)
+        drb->out_of_order_delivery = 1;
+      else
+        drb->out_of_order_delivery = 0;
       if (drb_config->discardTimer)
         drb->discard_timer = decode_discard_timer(*drb_config->discardTimer);
       bool size_set = false;

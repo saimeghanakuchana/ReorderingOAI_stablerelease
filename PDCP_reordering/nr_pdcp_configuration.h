@@ -50,6 +50,12 @@
 
 #define SIZEOF_NR_PDCP_T_REORDERING INT_LIST_SIZE(VALUES_NR_PDCP_T_REORDERING)
 
+
+#define VALUES_NR_PDCP_OUT_OF_ORDER_DELIVERY \
+    1, 0
+
+#define SIZEOF_NR_PDCP_OUT_OF_ORDER_DELIVERY INT_LIST_SIZE(VALUES_NR_PDCP_OUT_OF_ORDER_DELIVERY)
+
 #define VALUES_NR_PDCP_DISCARD_TIMER \
     10, 20, 30, 40, 50, 60, 75, 100, 150, 200, 250, 300, 500, 750, 1500, -1 /* -1 means infinity */
 
@@ -64,6 +70,7 @@ typedef struct {
     int sn_size;
     int t_reordering;
     int discard_timer;
+    int out_of_order_delivery;  
   } drb;
 } nr_pdcp_configuration_t;
 

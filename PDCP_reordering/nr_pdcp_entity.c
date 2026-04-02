@@ -181,7 +181,6 @@ static void nr_pdcp_entity_recv_pdu(nr_pdcp_entity_t *entity,
      * Now deliver immediately (may be out-of-order).
      * NOTE: deliver_sdu is assumed to perform header decompression if configured.
      */
-
     entity-> deliver_sdu(entity->deliver_sdu_data, entity,
                           sdu->buffer, sdu->size,
                           &sdu->msg_integrity);
@@ -189,8 +188,11 @@ static void nr_pdcp_entity_recv_pdu(nr_pdcp_entity_t *entity,
 
     entity->stats.txsdu_pkts++;
     entity->stats.txsdu_bytes += sdu->size;
+    LOG_I(PDCP, "PDU delivered (OOO) size=%d total_pkts=%u total_bytes=%u\n",
+      sdu->size,
+      entity->stats.txsdu_pkts,
+      entity->stats.txsdu_bytes);
   }
-
 
 
   if (rcvd_count == entity->rx_deliv) {
@@ -198,16 +200,13 @@ static void nr_pdcp_entity_recv_pdu(nr_pdcp_entity_t *entity,
     uint32_t count = entity->rx_deliv;
     while (entity->rx_list != NULL && count == entity->rx_list->count) {
       nr_pdcp_sdu_t *cur = entity->rx_list;
-
       if(!cur->delivered){
         /* Prevents double-delivery in the in-order delivery loop */ 
-
         entity->deliver_sdu(entity->deliver_sdu_data, entity,
                           cur->buffer, cur->size,
                           &cur->msg_integrity);
         entity->stats.txsdu_pkts++;
         entity->stats.txsdu_bytes += cur->size;
-        
         cur-> delivered = true;
       }
       entity->rx_list = cur->next;
@@ -641,6 +640,7 @@ nr_pdcp_entity_t *new_nr_pdcp_entity(
     int sn_size,
     int t_reordering,
     int discard_timer,
+    int out_of_order_delivery,
     const nr_pdcp_entity_security_keys_and_algos_t *security_parameters)
 {
   nr_pdcp_entity_t *ret;
@@ -689,12 +689,15 @@ nr_pdcp_entity_t *new_nr_pdcp_entity(
   ret->sn_size       = sn_size;
   ret->t_reordering  = t_reordering;
   ret->discard_timer = discard_timer;
+  ret->out_of_order_delivery = out_of_order_delivery;
+
+  LOG_I(PDCP, "t-Reordering = %d ms\n", ret->t_reordering);
+  LOG_I(PDCP, "out_of_order_delivery = %d \n", ret->out_of_order_delivery);
 
   ret->sn_max        = (1 << sn_size) - 1;
   ret->window_size   = 1 << (sn_size - 1);
 
   ret->is_gnb = is_gnb;
-  ret -> out_of_order_delivery = true;
 
   nr_pdcp_entity_set_security(ret, security_parameters);
 

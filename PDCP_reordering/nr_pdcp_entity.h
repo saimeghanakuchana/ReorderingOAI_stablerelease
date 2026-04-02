@@ -132,6 +132,7 @@ typedef struct nr_pdcp_entity_t {
   int sn_size;                  /* SN size, in bits */
   int t_reordering;             /* unit: ms, -1 for infinity */
   int discard_timer;            /* unit: ms, -1 for infinity */
+  int out_of_order_delivery;
 
   int sn_max;                   /* (2^SN_size) - 1 */
   int window_size;              /* 2^(SN_size - 1) */
@@ -147,7 +148,6 @@ typedef struct nr_pdcp_entity_t {
 
   /* timers (stores the ms of activation, 0 means not active) */
   uint64_t t_reordering_start;
-  bool out_of_order_delivery;
 
   /* security */
   int has_ciphering;
@@ -200,6 +200,7 @@ nr_pdcp_entity_t *new_nr_pdcp_entity(
     int sn_size,
     int t_reordering,
     int discard_timer,
+    int out_of_order_delivery,
     const nr_pdcp_entity_security_keys_and_algos_t *security_parameters);
 
 /* Get maximum PDCP PDU size */

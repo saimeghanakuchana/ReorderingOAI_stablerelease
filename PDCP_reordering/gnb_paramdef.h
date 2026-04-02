@@ -850,6 +850,7 @@ typedef enum {
 #define CONFIG_NR_PDCP_SN_SIZE "sn_size"
 #define CONFIG_NR_PDCP_T_REORDERING "t_reordering"
 #define CONFIG_NR_PDCP_DISCARD_TIMER "discard_timer"
+#define CONFIG_NR_PDCP_OUT_OF_ORDER_DELIVERY "out_of_order_delivery"
 
 /*----------------------------------------------------------------------*/
 /* nr pdcp drb configuration                                            */
@@ -860,6 +861,7 @@ typedef enum {
 #define CONFIG_NR_PDCP_DRB_SN_SIZE_IDX 0
 #define CONFIG_NR_PDCP_DRB_T_REORDERING_IDX 1
 #define CONFIG_NR_PDCP_DRB_DISCARD_TIMER_IDX 2
+#define CONFIG_NR_PDCP_DRB_OUT_OF_ORDER_DELIVERY_IDX 3
 
 #define NR_PDCP_DRB_GLOBALPARAMS_DESC { \
     { .optname = CONFIG_NR_PDCP_SN_SIZE, \
@@ -882,7 +884,12 @@ typedef enum {
       .chkPptr = &(checkedparam_t){ .s3a = { .f3a = config_checkstr_assign_integer,  \
           .okstrval = { VALUES_NR_PDCP_DISCARD_TIMER_STR }, \
           .setintval = { VALUES_NR_PDCP_DISCARD_TIMER }, \
-          .num_okstrval = SIZEOF_NR_PDCP_DISCARD_TIMER }}} \
+          .num_okstrval = SIZEOF_NR_PDCP_DISCARD_TIMER }}}, \
+    { .optname = CONFIG_NR_PDCP_OUT_OF_ORDER_DELIVERY, \
+      .defintval = 0, \
+      .helpstr = "out of order delivery (0=disabled, 1=enabled)", \
+      .paramflags = 0, .iptr = NULL, .type = TYPE_UINT, .numelt = 0, \
+      .chkPptr = NULL }, \
 }
 
 /*----------------------------------------------------------------------*/

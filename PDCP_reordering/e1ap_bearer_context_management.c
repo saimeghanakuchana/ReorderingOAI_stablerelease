@@ -153,6 +153,9 @@ static E1AP_PDCP_Configuration_t e1_encode_pdcp_config(const bearer_context_pdcp
   if (in->pDCP_Reestablishment) {
     asn1cCallocOne(out.pDCP_Reestablishment, E1AP_PDCP_Reestablishment_true);
   }
+  if (in->outOfOrderDelivery) {
+    asn1cCallocOne(out.outOfOrderDelivery, E1AP_OutOfOrderDelivery_true);
+  }
   return out;
 }
 
@@ -170,6 +173,11 @@ static bool e1_decode_pdcp_config(bearer_context_pdcp_config_t *out, const E1AP_
   out->rLC_Mode = in->rLC_Mode;
   if (in->pDCP_Reestablishment && *in->pDCP_Reestablishment == E1AP_PDCP_Reestablishment_true)
     out->pDCP_Reestablishment = true;
+
+  out->outOfOrderDelivery = false;
+  if (in->outOfOrderDelivery && *in->outOfOrderDelivery == E1AP_OutOfOrderDelivery_true)
+    out->outOfOrderDelivery = true;
+
   return true;
 }
 
@@ -184,6 +192,7 @@ static bool eq_pdcp_config(const bearer_context_pdcp_config_t *a, const bearer_c
   _E1_EQ_CHECK_LONG(a->reorderingTimer, b->reorderingTimer);
   _E1_EQ_CHECK_LONG(a->discardTimer, b->discardTimer);
   _E1_EQ_CHECK_INT(a->pDCP_Reestablishment, b->pDCP_Reestablishment);
+  _E1_EQ_CHECK_INT(a->outOfOrderDelivery, b->outOfOrderDelivery);
   return true;
 }
 

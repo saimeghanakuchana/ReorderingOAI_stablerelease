@@ -1572,6 +1572,8 @@ void config_pdcp(configmodule_interface_t *cfg, nr_pdcp_configuration_t *pdcp_co
   pdcp_config->drb.sn_size = config_get_processedint(cfg, &pdcp_params[CONFIG_NR_PDCP_DRB_SN_SIZE_IDX]);
   pdcp_config->drb.t_reordering = config_get_processedint(cfg, &pdcp_params[CONFIG_NR_PDCP_DRB_T_REORDERING_IDX]);
   pdcp_config->drb.discard_timer = config_get_processedint(cfg, &pdcp_params[CONFIG_NR_PDCP_DRB_DISCARD_TIMER_IDX]);
+  pdcp_config->drb.out_of_order_delivery = *(pdcp_params[CONFIG_NR_PDCP_DRB_OUT_OF_ORDER_DELIVERY_IDX].uptr);
+  LOG_I(GNB_APP, "CONFIG: out_of_order_delivery = %d\n", pdcp_config->drb.out_of_order_delivery);
 }
 
 void RCconfig_nr_macrlc(configmodule_interface_t *cfg)

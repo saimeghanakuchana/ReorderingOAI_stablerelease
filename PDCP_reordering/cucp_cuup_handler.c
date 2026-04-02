@@ -46,6 +46,7 @@
 #include "openair2/F1AP/f1ap_ids.h"
 #include "openair2/SDAP/nr_sdap/nr_sdap.h"
 #include "openair3/ocp-gtpu/gtp_itf.h"
+//#include "E1AP_OutOfOrderDelivery.h"
 
 static void fill_DRB_configList_e1(NR_DRB_ToAddModList_t *DRB_configList, const pdu_session_to_setup_t *pdu)
 {
@@ -82,7 +83,16 @@ static void fill_DRB_configList_e1(NR_DRB_ToAddModList_t *DRB_configList, const 
     drbCfg->headerCompression.choice.notUsed = 0;
     drbCfg->integrityProtection = NULL;
     drbCfg->statusReportRequired = NULL;
-    drbCfg->outOfOrderDelivery = NULL;
+    if (drb->pdcp_config.outOfOrderDelivery) {
+      asn1cCallocOne(drbCfg->outOfOrderDelivery, NR_PDCP_Config__drb__outOfOrderDelivery_true);
+    } 
+    else {
+      drbCfg->outOfOrderDelivery = NULL;
+    }
+
+    LOG_I(PDCP, "fill_DRB_configList_e1: drb->pdcp_config.outOfOrderDelivery = %d\n",drb->pdcp_config.outOfOrderDelivery);
+    LOG_I(PDCP, "drbCfg: drbCfg->outOfOrderDelivery = %ld\n",drbCfg->outOfOrderDelivery ? *drbCfg->outOfOrderDelivery : -1L);
+
     pdcp_config->moreThanOneRLC = NULL;
     pdcp_config->t_Reordering = calloc(1, sizeof(*pdcp_config->t_Reordering));
     *pdcp_config->t_Reordering = drb->pdcp_config.reorderingTimer;
