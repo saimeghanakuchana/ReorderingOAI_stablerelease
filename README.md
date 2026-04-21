@@ -3,10 +3,7 @@ This is a repository which contains all the components - Core Network and RAN
 CoreNetwork is forked from https://gitlab.eurecom.fr/oai/cn5g/oai-cn5g-fed.git (Branch: 2024.w45)
 RAN is forked from https://gitlab.eurecom.fr/oai/openairinterface5g.git (Branch: 2025.w42)
 
-
-Was facing UE RACH failure issue. 
-
-# So, I  run the following: 
+# I use a basic profile and clone my CoreNetwork and RAN, I  run the following:  
 cd /local/repository/
 rm -rf oai-cn5g-fed/
 rm -rf openairinterface5g/
@@ -27,12 +24,11 @@ sudo docker logs -f oai-amf
 
 #To start the gNB, we first made few changes in gnb.conf file present at /local/repository/etc/gnb.conf 
 #This is because the gNB was not registering to the AMF 
+#This occurs because the CoreNetwork Components (AMF, UPF, etc) have random IP addresses each time start my Corenetwork. So, I check the AMF IP address after the Corenetwork is up and update it in gnb.conf
+
 #We first check the IP address of AMF using the following bash command
 sudo docker inspect oai-amf | grep IPAddress
 # now change the following in your gnb.conf 
 amf_ip_address.ipv4 to the ip address observed in inspect command 
 # change the subnet mask in NETWORK_INTERFACES->GNB_IPV4_ADDRESS_FOR_NG_AMF, NETWORK_INTERFACES-> GNB_IPV4_ADDRESS_FOR_NGU to 26
 ## TODO: In future, intead of manually changing the address, try to resolve by fixing the AMF ipaddress (check: /mydata/oai-cn5g/docker-compose/conf$ nano basic_nrf_config.yaml) 
-
-# Changes needed in ue.conf and ue2.conf file present at /local/repository/etc/ 
-uicc0.dnn = "oai.ipv4"
