@@ -71,6 +71,16 @@ git clone --branch v2.3.0 --single-branch https://gitlab.eurecom.fr/oai/openairi
 
 ```
 ---
+If you want to integrate the changes related to PDCP OutOfOrderDelivery variable, you need to transfer files present in the PDCP_reordering to their appropriate location in the PDCP code of OpenAirInterface5G. To do this run the bash script
+```
+cd /local/repository
+bash file_transfer.sh
+
+```
+The file_tranfer.sh has all the changed files related to OutOfOrderDelivery parameter. In the future, if you plan to make further changes in the code, you should add the corresponding file to file_transfer.sh
+---
+
+
 
 - To build the RAN (both gNB and UE), run  
 ```
@@ -119,6 +129,7 @@ NETWORK_INTERFACES->GNB_IPV4_ADDRESS_FOR_NG_AMF
 ```
 NETWORK_INTERFACES-> GNB_IPV4_ADDRESS_FOR_NGU to 26
 ```
+All these changes are included in gnb_new.conf. So we can use that config file directly after manually changing the OAI-AMF IP Address.
 
 - We need to also change the following in the UE config files located at /local/repository/etc
 
