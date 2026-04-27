@@ -86,6 +86,11 @@ echo $ip_veth_ue1 $ip_veth_main1 $ip_veth_ue2 $ip_veth_main2
 sudo ip netns exec ue1 env ./ran_build/build/nr-uesoftmodem -O /local/repository/etc/ue.conf -r 106 -C 3619200000 --numerology 1 --band 78 --rfsim --rfsimulator.options chanmod --rfsimulator.serveraddr $ip_veth_main1
 sudo ip netns exec ue2 env ./ran_build/build/nr-uesoftmodem -O /local/repository/etc/ue2.conf -r 106 -C 3619200000 --numerology 1 --band 78 --rfsim --rfsimulator.options chanmod --rfsimulator.serveraddr $ip_veth_main2
 
+#For good channel conditions, we should comment out @include "channelmod_rfsimu.conf" in ue config files and run 
+sudo ip netns exec ue1 env ./ran_build/build/nr-uesoftmodem -O /local/repository/etc/ue.conf -r 106 -C 3619200000 --numerology 1 --band 78 --rfsim --rfsimulator.serveraddr $ip_veth_main1
+sudo ip netns exec ue2 env ./ran_build/build/nr-uesoftmodem -O /local/repository/etc/ue2.conf -r 106 -C 3619200000 --numerology 1 --band 78 --rfsim --rfsimulator.serveraddr $ip_veth_main2
+
+
 # If using two nodes, use: 
 RFSIMULATOR=$ip_veth_main1 ./ran_build/build/nr-uesoftmodem -r 106 --numerology 1 --band 78 -C 3619200000    --rfsim --sa --nokrnmod -O /local/repository/etc/ue.conf
 RFSIMULATOR=$ip_veth_main2 ./ran_build/build/nr-uesoftmodem -r 106 --numerology 1 --band 78 -C 3619200000    --rfsim --sa --nokrnmod -O /local/repository/etc/ue2.conf
@@ -100,49 +105,54 @@ ip_cdn=$(sudo docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress
 echo $ip_cdn
 ```
 ---
+Add the default route for UE1 and UE2: 
+```
+sudo ip netns exec ue1 ip route add default dev oaitun_ue1 
+sudo ip netns exec ue2 ip route add default dev oaitun_ue1
+```
 
 Instantiating header en/decapsulating gre tunnels inside both namespaces and external data network container 
 ---
 - 6) instantiate header en/decapsulating gre tunnels inside both namespaces
 ```
-sudo ip netns exec ue1 ip tunnel add gre1 mode gre local $ip_ue1_tun remote $ip_cdn ttl 255
+sudo ip netns exec ue1 ip tunnel add gre1 mode gre local $ip_ue1_tun remote $ip_cdn key 1 ttl 255
 sudo ip netns exec ue1 ip link set gre1 up
-sudo ip netns exec ue1 ip link set gre1  mtu 1476
+sudo ip netns exec ue1 ip link set gre1  mtu 1400
 
-sudo ip netns exec ue2 ip tunnel add gre2 mode gre local $ip_ue2_tun remote $ip_cdn ttl 255
+sudo ip netns exec ue2 ip tunnel add gre2 mode gre local $ip_ue2_tun remote $ip_cdn key 2 ttl 255
 sudo ip netns exec ue2 ip link set gre2 up
-sudo ip netns exec ue2 ip link set gre2  mtu 1476
+sudo ip netns exec ue2 ip link set gre2  mtu 1400
 ```
 
 ```
 # Optional: after restart 
-sudo ip netns exec ue1 ip tunnel change gre1 mode gre local $ip_ue1_tun remote $ip_cdn ttl 255
+sudo ip netns exec ue1 ip tunnel change gre1 mode gre local $ip_ue1_tun remote $ip_cdn key 1 ttl 255
 sudo ip netns exec ue1 ip link set gre1 up
-sudo ip netns exec ue1 ip link set gre1  mtu 1476
-sudo ip netns exec ue2 ip tunnel change gre2 mode gre local $ip_ue2_tun remote $ip_cdn ttl 255
+sudo ip netns exec ue1 ip link set gre1  mtu 1400
+sudo ip netns exec ue2 ip tunnel change gre2 mode gre local $ip_ue2_tun remote $ip_cdn key 2 ttl 255
 sudo ip netns exec ue2 ip link set gre2 up
-sudo ip netns exec ue2 ip link set gre2  mtu 1476
+sudo ip netns exec ue2 ip link set gre2  mtu 1400
 
 ```
 
 - 7) instantiate header en/decapsulating gre tunnel counterparts at the core data network container
 ```
-sudo docker exec -it oai-ext-dn ip tunnel add gre1 mode gre local $ip_cdn remote $ip_ue1_tun ttl 255
+sudo docker exec -it oai-ext-dn ip tunnel add gre1 mode gre local $ip_cdn remote $ip_ue1_tun key 1 ttl 255
 sudo docker exec -it oai-ext-dn ip link set gre1 up
-sudo docker exec -it oai-ext-dn ip link set gre1  mtu 1476
-sudo docker exec -it oai-ext-dn ip tunnel add gre2 mode gre local $ip_cdn remote $ip_ue2_tun ttl 255
+sudo docker exec -it oai-ext-dn ip link set gre1  mtu 1400
+sudo docker exec -it oai-ext-dn ip tunnel add gre2 mode gre local $ip_cdn remote $ip_ue2_tun key 2 ttl 255
 sudo docker exec -it oai-ext-dn ip link set gre2 up
-sudo docker exec -it oai-ext-dn ip link set gre2  mtu 1476
+sudo docker exec -it oai-ext-dn ip link set gre2  mtu 1400
 ```
 
 ```
 # restart - # instantiate header en/decapsulating gre tunnel counterparts at the core data network container
-sudo docker exec -it oai-ext-dn ip tunnel change gre1 mode gre local $ip_cdn remote $ip_ue1_tun ttl 255
+sudo docker exec -it oai-ext-dn ip tunnel change gre1 mode gre local $ip_cdn remote $ip_ue1_tun key 1 ttl 255
 sudo docker exec -it oai-ext-dn ip link set gre1 up
-sudo docker exec -it oai-ext-dn ip link set gre1  mtu 1476
-sudo docker exec -it oai-ext-dn ip tunnel change gre2 mode gre local $ip_cdn remote $ip_ue2_tun ttl 255
+sudo docker exec -it oai-ext-dn ip link set gre1  mtu 1400
+sudo docker exec -it oai-ext-dn ip tunnel change gre2 mode gre local $ip_cdn remote $ip_ue2_tun key 2 ttl 255
 sudo docker exec -it oai-ext-dn ip link set gre2 up
-sudo docker exec -it oai-ext-dn ip link set gre2  mtu 1476
+sudo docker exec -it oai-ext-dn ip link set gre2  mtu 1400
 ```
 
 ```
