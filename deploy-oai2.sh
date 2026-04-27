@@ -107,7 +107,6 @@ function install_ran_packages {
         libforms-bin \
         libuhd-dev \
         numactl \
-        #uhd-host \
         zlib1g \
         zlib1g-dev
     sudo uhd_images_downloader
