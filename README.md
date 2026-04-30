@@ -1,3 +1,8 @@
+Image: urn:publicid:IDN+emulab.net+image+POWDER-Train-26:final-flux-5g-e2e.core-gnb
+Profile used: https://www.powderwireless.net/show-profile.php?uuid=f4a37887-f0b0-11ef-af1a-e4434b2381fc
+
+
+
 This is a repository which contains all the components - Core Network and RAN 
 
 CoreNetwork is forked from https://gitlab.eurecom.fr/oai/cn5g/oai-cn5g-fed.git (Branch: 2024.w45)
