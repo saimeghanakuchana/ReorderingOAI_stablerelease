@@ -188,7 +188,7 @@ static void nr_pdcp_entity_recv_pdu(nr_pdcp_entity_t *entity,
 
     entity->stats.txsdu_pkts++;
     entity->stats.txsdu_bytes += sdu->size;
-    LOG_I(PDCP, "PDU delivered (OOO) size=%d total_pkts=%u total_bytes=%u\n",
+    LOG_D(PDCP, "PDU delivered (OOO) size=%d total_pkts=%u total_bytes=%u\n",
       sdu->size,
       entity->stats.txsdu_pkts,
       entity->stats.txsdu_bytes);
@@ -441,13 +441,16 @@ static void check_t_reordering(nr_pdcp_entity_t *entity)
   /* deliver all SDUs with count < rx_reord */
   while (entity->rx_list != NULL && entity->rx_list->count < entity->rx_reord) {
     nr_pdcp_sdu_t *cur = entity->rx_list;
-    entity->deliver_sdu(entity->deliver_sdu_data, entity,
-                        cur->buffer, cur->size,
-                        &cur->msg_integrity);
+    /* with outOfOrderDelivery the SDU may already have been delivered on reception */
+    if (!cur->delivered) {
+      entity->deliver_sdu(entity->deliver_sdu_data, entity,
+                          cur->buffer, cur->size,
+                          &cur->msg_integrity);
+      entity->stats.txsdu_pkts++;
+      entity->stats.txsdu_bytes += cur->size;
+    }
     entity->rx_list = cur->next;
     entity->rx_size -= cur->size;
-    entity->stats.txsdu_pkts++;
-    entity->stats.txsdu_bytes += cur->size;
     nr_pdcp_free_sdu(cur);
   }
 
@@ -455,13 +458,16 @@ static void check_t_reordering(nr_pdcp_entity_t *entity)
   count = entity->rx_reord;
   while (entity->rx_list != NULL && count == entity->rx_list->count) {
     nr_pdcp_sdu_t *cur = entity->rx_list;
-    entity->deliver_sdu(entity->deliver_sdu_data, entity,
-                        cur->buffer, cur->size,
-                        &cur->msg_integrity);
+    /* with outOfOrderDelivery the SDU may already have been delivered on reception */
+    if (!cur->delivered) {
+      entity->deliver_sdu(entity->deliver_sdu_data, entity,
+                          cur->buffer, cur->size,
+                          &cur->msg_integrity);
+      entity->stats.txsdu_pkts++;
+      entity->stats.txsdu_bytes += cur->size;
+    }
     entity->rx_list = cur->next;
     entity->rx_size -= cur->size;
-    entity->stats.txsdu_pkts++;
-    entity->stats.txsdu_bytes += cur->size;
     nr_pdcp_free_sdu(cur);
     count++;
   }
@@ -486,13 +492,16 @@ static void deliver_all_sdus(nr_pdcp_entity_t *entity)
   // deliver the PDCP SDUs stored in the receiving PDCP entity to upper layers
   while (entity->rx_list != NULL) {
     nr_pdcp_sdu_t *cur = entity->rx_list;
-    entity->deliver_sdu(entity->deliver_sdu_data, entity,
-                        cur->buffer, cur->size,
-                        &cur->msg_integrity);
+    /* with outOfOrderDelivery the SDU may already have been delivered on reception */
+    if (!cur->delivered) {
+      entity->deliver_sdu(entity->deliver_sdu_data, entity,
+                          cur->buffer, cur->size,
+                          &cur->msg_integrity);
+      entity->stats.txsdu_pkts++;
+      entity->stats.txsdu_bytes += cur->size;
+    }
     entity->rx_list = cur->next;
     entity->rx_size -= cur->size;
-    entity->stats.txsdu_pkts++;
-    entity->stats.txsdu_bytes += cur->size;
     nr_pdcp_free_sdu(cur);
   }
 }
