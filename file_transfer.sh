@@ -21,6 +21,9 @@ cp "$SRC_DIR/e1ap_messages_types.h" "$DST_DIR/openair2/COMMON/e1ap_messages_type
 cp "$SRC_DIR/e1ap_bearer_context_management.c" "$DST_DIR/openair2/E1AP/lib/e1ap_bearer_context_management.c" 
 cp "$SRC_DIR/rrc_gNB_radio_bearers.c" "$DST_DIR/openair2/RRC/NR/rrc_gNB_radio_bearers.c" 
 cp "$SRC_DIR/asn1_msg.c" "$DST_DIR/openair2/RRC/NR/MESSAGES/asn1_msg.c" 
-cp "$SRC_DIR/nr_rrc_defs.h" "$DST_DIR/openair2/RRC/NR/nr_rrc_defs.h" 
+cp "$SRC_DIR/nr_rrc_defs.h" "$DST_DIR/openair2/RRC/NR/nr_rrc_defs.h"
+
+# Build fix (not PDCP-related): compile the USRP driver as C++17, required by UHD >= 4.8 headers
+cp "$SRC_DIR/usrp_CMakeLists.txt" "$DST_DIR/radio/USRP/CMakeLists.txt"
 
 echo "Copy complete."

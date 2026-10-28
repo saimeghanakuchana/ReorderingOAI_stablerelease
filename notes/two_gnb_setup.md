@@ -9,18 +9,17 @@ Everything above the RAN stays as described in [RACK_and_MPTCP_setup.md](RACK_an
 | Config | `etc/gnb_new.conf` | `etc/gnb2.conf` |
 | gNB_ID / name | 0xe00 / gNB-Eurecom-5GNRBox | 0xe01 / gNB-path2 |
 | nr_cellid / PCI | 12345678 / 0 | 12345679 / 1 |
-| Carrier | n78, 106 PRB (40 MHz), center 3619.20 MHz | n78, 51 PRB (20 MHz), center 3648.00 MHz |
-| SSB ARFCN / PointA ARFCN | 641280 / 640008 | 643296 / 642588 |
+| Carrier | n78, 106 PRB (40 MHz), center 3619.20 MHz | n78, 106 PRB (40 MHz), center 3658.08 MHz |
+| SSB ARFCN / PointA ARFCN | 641280 / 640008 | 643872 / 642600 |
 | N2/N3 address | 192.168.70.129 (host address on `demo-oai`) | 192.168.70.190 (IP alias on `demo-oai`) |
 | rfsim server port | 4043 | 4044 |
 | UE | UE1 (`ue.conf`, IMSI ...031) | UE2 (`ue2.conf`, IMSI ...032) |
 
 **Why these choices:**
-- **Same band.** Both cells use n78 with the same numerology and TDD pattern, so the setup carries over to OTA with FR1 radios.
-- **Different bandwidths.** 106 vs 51 PRB makes the two paths naturally asymmetric (about 2:1 in capacity).
-- **No overlap.** The second carrier sits right above the first, so OTA radios would not interfere.
-- **Valid SSB placement.** The SSB of gNB2 lies on the synchronization raster (GSCN-aligned).
-- **Checked formulas.** The UE frequency (`-C`) and `--ssb` values were computed with the same formulas that reproduce OAI's CI values for the 24-PRB and 273-PRB configs.
+- **Symmetric paths.** Both cells use n78 with 106 PRB and the same numerology and TDD pattern, so the two paths have equal capacity. Asymmetry, when needed, is added explicitly (tc delay or rate on one path, a different channel model per UE).
+- **Separate cells.** Each cell has its own spectrum, scheduler and radio. Capacities therefore add up, unlike the earlier single-cell setup where both UEs shared one cell's PRBs.
+- **No overlap.** The second carrier sits right above the first (3639.00–3677.16 MHz vs 3600.12–3638.28 MHz), so the setup carries over to OTA FR1 radios without interference, if POWDER authorizes that range.
+- **Same radio configuration as gNB1.** gNB2's SSB and PointA were shifted *together* by 2592 ARFCN (27 SSB-raster steps of 1.44 MHz). The SSB stays on the sync raster, and the BWP, CORESET0 and `--ssb` values are exactly those of the working gNB1 config. The gNB prints the matching UE parameters at startup (`Command line parameters for OAI UE: ...`).
 
 ---
 
@@ -115,9 +114,9 @@ sudo chrt -f 80 taskset -c 10-12 ip netns exec ue1 env ./ran_build/build/nr-ueso
   -O /local/repository/etc/ue.conf -r 106 --numerology 1 --band 78 -C 3619200000 \
   --rfsim --rfsimulator.serveraddr $ip_veth_main1 --rfsimulator.serverport 4043
 
-# UE2 -> gNB2 (51 PRB, 3648.00 MHz, port 4044, --ssb 234)
+# UE2 -> gNB2 (106 PRB, 3658.08 MHz, port 4044, --ssb 516 = default)
 sudo chrt -f 81 taskset -c 13-15 ip netns exec ue2 env ./ran_build/build/nr-uesoftmodem \
-  -O /local/repository/etc/ue2.conf -r 51 --numerology 1 --band 78 -C 3648000000 --ssb 234 \
+  -O /local/repository/etc/ue2.conf -r 106 --numerology 1 --band 78 -C 3658080000 --ssb 516 \
   --rfsim --rfsimulator.serveraddr $ip_veth_main2 --rfsimulator.serverport 4044
 ```
 
@@ -132,7 +131,7 @@ sudo chrt -f 81 taskset -c 13-15 ip netns exec ue2 env ./ran_build/build/nr-ueso
    sudo ip netns exec ue2 ip -o -4 addr show dev oaitun_ue1
    ```
 2. **Each UE is on the right cell.** Check the gNB logs: UE1's RNTI should appear in gNB1's MAC stats, and UE2's RNTI in gNB2's.
-3. **Single-path capacity per path.** Run iperf over each path alone, as in the "single paths" block of RACK_and_MPTCP_setup.md. Path 2 should be roughly half of path 1 (51 vs 106 PRB). Both run at the same time should now add up, since they no longer share a cell.
+3. **Single-path capacity per path.** Run iperf over each path alone, as in the "single paths" block of RACK_and_MPTCP_setup.md. The two paths should give about the same throughput (both 106 PRB). Run at the same time, they should now add up to about twice a single path, since they no longer share a cell.
 4. **Idle RTT per path.** Run `ping -c 50` per path. Check whether the roughly 800 ms RTT mode seen in the April 27 runs is still present.
 
 Then continue with GRE tunnels, routing, spraying, and the RACK and MPTCP runs exactly as in [RACK_and_MPTCP_setup.md](RACK_and_MPTCP_setup.md), steps 5 onward.
@@ -141,7 +140,7 @@ Then continue with GRE tunnels, routing, spraying, and the RACK and MPTCP runs e
 
 ## Troubleshooting
 
-- **gNB2 fails to start with a bind error on 2152 or SCTP.** The alias is missing or the address is wrong (step 2).
-- **UE2 does not find the cell.** Check that `-r 51 -C 3648000000 --ssb 234` and `--rfsimulator.serverport 4044` are all set. A wrong `--ssb` value makes the UE miss the SSB.
-- **gNB2 asserts on the BWP or CORESET.** The 51-PRB values (`initialDLBWPlocationAndBandwidth = 13750`, CORESET0 index 12) come from OAI's CI config `gnb.sa.band78.51prb.usrpb200.conf`. If an assertion still fires, compare the `servingCellConfigCommon` block against that file.
+- **gNB2 logs `[GTPU] bind: Cannot assign requested address` and `[SCTP] sctp_bindx() ... Cannot assign requested address`.** The IP alias 192.168.70.190 is missing (step 2). Add it with `sudo ip addr add 192.168.70.190/26 dev demo-oai` and restart gNB2.
+- **gNB2 logs `[HW] could not open a socket` / `Could not start the RF device`.** The rfsim server could not bind its port, usually because gNB1 already holds 4043. `serverport` must be an **integer** (`serverport = 4044;`). A quoted string (`"4044"`) is silently ignored, and OAI then uses the default port 4043. You can also override the port on the command line with `--rfsimulator.serverport 4044`.
+- **UE2 does not find the cell.** Check that `-r 106 -C 3658080000` and `--rfsimulator.serverport 4044` are set. Compare them with the `Command line parameters for OAI UE` line in gNB2's log.
 - **Both UEs attach to the same gNB.** Each UE must point at its own rfsim port (4043 / 4044).
